@@ -1,40 +1,95 @@
 package com.apptronics.matrix.ui;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.apptronics.matrix.R;
+import com.apptronics.matrix.model.Task;
+import com.apptronics.matrix.model.User;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.mikepenz.materialdrawer.AccountHeader;
+import com.mikepenz.materialdrawer.AccountHeaderBuilder;
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.holder.StringHolder;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import timber.log.Timber;
+
+import static java.lang.System.clearProperty;
+import static java.lang.System.in;
 
 /**
  * Created by Maha Perriyava on 4/30/2018.
  */
 
-public class MainActivity extends AppCompatActivity implements TasksFragment.OnFragmentInteractionListener, ProjectsFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements TasksFragment.OnFragmentInteractionListener {
 
     ViewPager mViewPager;
     MyPagerAdapter myPagerAdapter;
     TabLayout tabLayout;
+    User user;
     Bundle bundle;
+    DatabaseReference mDatabase;
+    MenuItem menu;
+    String teamSelected,uid;
+    int teams_num=0;
+    FloatingActionButton addTask;
+
+    PrimaryDrawerItem projectMenuItem;
+    SecondaryDrawerItem createProjectTeamItem;
+
+    TextView toolbarTitle;
+
+    private DrawerLayout mDrawerLayout;
+    NavigationView navigationView;
+
+    AccountHeader headerResult;
+    Drawer drawer;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,16 +102,188 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
 
         mViewPager=(ViewPager)findViewById(R.id.view_pager);
         setupViewPager(mViewPager);
+        addTask=(FloatingActionButton)findViewById(R.id.addTask);
+        addTask.setOnClickListener(new View.
+                                OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(teamSelected==null||teamSelected.isEmpty()){
+                    Toast.makeText(MainActivity.this,"Select a team",Toast.LENGTH_SHORT).show();
+                    drawer.openDrawer();
+                } else {
+                    Intent intent = new Intent(MainActivity.this,AddUsersActivity.class);
+                    intent.putExtra("team",teamSelected);
+                    startActivity(intent);
+                }
+            }
+        });
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+        toolbarTitle=(TextView)findViewById(R.id.toolbar_title);
 
+        headerResult = new AccountHeaderBuilder()
+                .withActivity(this)
+                .withHeaderBackground(R.drawable.navheader)
+                .build();
+
+        uid=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mDatabase= FirebaseDatabase.getInstance().getReference();
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                user = dataSnapshot.getValue(User.class);
+
+                headerResult.addProfiles(
+                        new ProfileDrawerItem().withName(user.name).withEmail(user.email).withIcon(getResources().getDrawable(R.drawable.ic_person_black_24dp))
+                );
+                if(user!=null){
+                    Timber.i("user found %s %s",uid,user.name);
+                } else {
+                    Timber.i("user not found");
+                }
+                // ...
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                // ...
+            }
+        };
+        mDatabase.child("users").child(uid).addValueEventListener(postListener);
+
+        //menu = navigationView.getMenu().getItem(0);
+        mDatabase.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot team :dataSnapshot.getChildren()){
+                    Timber.i("team looped %s",team.getKey());
+
+                    for(DataSnapshot uid : team.child("UIDs").getChildren()){
+                        Timber.i("uid looped %s",uid.getValue());
+                        if(uid.getValue().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
+                            teams_num++;
+                            switch ((String)team.child("type").getValue()){
+                                case "electronics":{
+                                    drawer.addItem(new PrimaryDrawerItem().withIdentifier(2+teams_num).withName(team.getKey()).withIcon(R.drawable.ic_electronics));
+                                    Timber.i("team added %s",team.getKey());
+                                    break;
+                                }
+                                case "android":{
+                                    drawer.addItem(new PrimaryDrawerItem().withIdentifier(2+teams_num).withName(team.getKey()).withIcon(R.drawable.ic_android_black_24dp));
+                                    Timber.i("team added %s",team.getKey());
+                                    break;
+                                }
+                                case "web":{
+                                    drawer.addItem(new PrimaryDrawerItem().withIdentifier(2+teams_num).withName(team.getKey()).withIcon(R.drawable.ic_web));
+                                    Timber.i("team added %s",team.getKey());
+                                    break;
+                                }
+                                default:{
+                                    drawer.addItem(new PrimaryDrawerItem().withIdentifier(2+teams_num).withName(team.getKey()).withIcon(R.drawable.ic_other));
+                                    Timber.i("team added %s",team.getKey());
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                }
+                if(teams_num>2){
+                    //drawer.setSelection(3, true);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        createProjectTeamItem = new SecondaryDrawerItem().withName("Create Project Team").withIdentifier(1).withIcon(R.drawable.ic_add_black_24dp);
+        projectMenuItem = new PrimaryDrawerItem().withIdentifier(2).withName("Project Teams").withSelectable(false).withSubItems(createProjectTeamItem);
+
+        drawer = new DrawerBuilder()
+                .withActivity(this)
+                .withAccountHeader(headerResult)
+                .withToolbar(toolbar)
+                .addDrawerItems(
+                        projectMenuItem
+                )
+                .withOnDrawerListener(new Drawer.OnDrawerListener() {
+                    @Override
+                    public void onDrawerOpened(View drawerView) {
+
+                    }
+
+                    @Override
+                    public void onDrawerClosed(View drawerView) {
+                        if(teamSelected==null||teamSelected.isEmpty()){
+                            Toast.makeText(MainActivity.this,"Please select team",Toast.LENGTH_LONG).show();
+                            drawer.openDrawer();
+                        }
+                    }
+
+                    @Override
+                    public void onDrawerSlide(View drawerView, float slideOffset) {
+
+                    }
+                })
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                        // do something with the clicked item :D
+                        switch (view.getId()){
+                            case 1:{//create project
+                                startActivity(new Intent(MainActivity.this,AddUsersActivity.class));
+                                break;
+                            }
+                            case 2:{//nothing
+                                break;
+                            }
+                            default:{
+                                updateUI(((PrimaryDrawerItem)drawerItem).getName());
+                                drawer.closeDrawer();
+                            }
+
+                        }
+                        return true;
+                    }
+                })
+                .build();
+
+        if(teams_num>2){
+            //drawer.setSelection(4, true);
+        }
+
+        drawer.openDrawer();
+    }
+
+    private void updateUI(StringHolder name) {
+        teamSelected=name.getText(this);
+        toolbarTitle.setText(teamSelected+ " Tasks");
+        ((TasksFragment)myPagerAdapter.getItem(0)).onRefresh(teamSelected,uid);
+        ((TasksFragment)myPagerAdapter.getItem(1)).onRefresh(teamSelected,uid);
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onStartLogRequested(Task task, String uid, String projectTeam) {
+        Intent intent = new Intent(this,TimerActivity.class);
+        intent.putExtra("uid",uid);
+        intent.putExtra("team",teamSelected);
+        intent.putExtra("task",task.description);
+        startActivity(intent);
+    }
 
+    @Override
+    public void viewLogs(Task task, String projectTeam) {
+        Intent intent = new Intent(this,LogsActivity.class);
+        intent.putExtra("team",teamSelected);
+        intent.putExtra("task",task.description);
+        startActivity(intent);
     }
 
     public class MyPagerAdapter extends FragmentPagerAdapter {
@@ -90,24 +317,24 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
     }
 
     private void setupViewPager(ViewPager viewPager) {
-        MyPagerAdapter adapter = new MyPagerAdapter(getSupportFragmentManager());
+        myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         TasksFragment onGoingFragment, doneFragment;
 
         onGoingFragment= new TasksFragment();
         bundle=new Bundle();
         bundle.putBoolean("done",false);
         onGoingFragment.setArguments(bundle);
-        adapter.addFragment(onGoingFragment, "On Going");
+        myPagerAdapter.addFragment(onGoingFragment, "On Going");
 
 
         doneFragment= new TasksFragment();
         bundle=new Bundle();
         bundle.putBoolean("done",true);
-        doneFragment.setArguments(bundle);
-        adapter.addFragment(doneFragment, "Done");
 
-        adapter.addFragment(new ProjectsFragment(), "Projects");
-        viewPager.setAdapter(adapter);
+        doneFragment.setArguments(bundle);
+        myPagerAdapter.addFragment(doneFragment, "Done");
+
+        viewPager.setAdapter(myPagerAdapter);
     }
 
     @Override
@@ -141,5 +368,9 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
         finish();
 
     }
+
+
+
+
 
 }

@@ -5,9 +5,17 @@
     tools:context="com.apptronics.matrix.ui.TasksFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tasksList"/>
+
+    <TextView android:id="@+id/empty"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:paddingTop="4dp"
+        android:textSize="16sp"
+        android:textAlignment="center"
+        android:text="No tasks here!" />
 
 </FrameLayout>

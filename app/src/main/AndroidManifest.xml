@@ -12,15 +12,37 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.LoginActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.SignUpActivity"
+            android:windowSoftInputMode="adjustPan" />
         <activity android:name=".ui.MainActivity" />
-        <activity android:name=".ui.TimerActivity"></activity>
+        <activity
+            android:name=".ui.TimerActivity"
+            android:parentActivityName=".ui.MainActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:name=".ui.AddUsersActivity"
+            android:label="@string/title_activity_add_users"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.AddProject"
+            android:parentActivityName=".ui.AddUsersActivity" />
+        <activity
+            android:name=".ui.AddTask"
+            android:parentActivityName=".ui.AddUsersActivity" />
+        <activity
+            android:name=".ui.LogsActivity"
+            android:label="@string/title_activity_logs"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/AppTheme"/>
     </application>
 
 </manifest>

@@ -1,36 +1,40 @@
 package com.apptronics.matrix.ui
 
-import android.app.ProgressDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 
 
 import kotlinx.android.synthetic.main.activity_login.*
 import com.google.firebase.auth.FirebaseAuth
-import android.widget.RadioGroup
 import com.apptronics.matrix.R
+import com.apptronics.matrix.model.User
 import timber.log.Timber
-
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import android.widget.LinearLayout
 
 class LoginActivity : AppCompatActivity(), View.OnClickListener {
 
     private var mAuth: FirebaseAuth? = null
-    internal var RC_SIGN_IN = 1
-    internal var progressDialog: ProgressDialog? = null
 
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
+
+        mAuth = FirebaseAuth.getInstance()
         val currentUser = mAuth!!.getCurrentUser()
         if(currentUser != null){
             startActivity(Intent(this, MainActivity::class.java))
         }
 
     }
-
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +43,10 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         mAuth = FirebaseAuth.getInstance()
 
         btn_login.setOnClickListener(this)
-
+        goSignUp.setOnClickListener(View.OnClickListener {
+            startActivity(Intent(this, SignUpActivity::class.java))
+            finish()
+        })
 
     }
 
@@ -60,15 +67,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
-                        val user = mAuth!!.getCurrentUser()
                         startActivity(Intent(this, MainActivity::class.java))
-
                     } else {
-                        // If sign in fails, display a message to the user.
-                        Toast.makeText(this, "Failed. Check network",
-                                Toast.LENGTH_SHORT).show()
-                        btn_login.isEnabled=true
-
+                        Toast.makeText(this,"Authentication failed. "+task.result.additionalUserInfo,Toast.LENGTH_SHORT).show()
                     }
 
                     // ...
