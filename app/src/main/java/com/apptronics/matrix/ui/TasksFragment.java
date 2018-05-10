@@ -2,14 +2,10 @@ package com.apptronics.matrix.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.apptronics.matrix.R;
-import com.apptronics.matrix.Utils;
+import com.apptronics.matrix.utils.Utils;
 import com.apptronics.matrix.adapter.TasksAdapter;
 import com.apptronics.matrix.model.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -109,6 +105,7 @@ public class TasksFragment extends Fragment {
 
         uid=p_uid;
         this.projectTeamName=projectTeamName;
+
         mDatabase= FirebaseDatabase.getInstance().getReference();
         mDatabase.child("teams").child(projectTeamName).child("tasks").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

@@ -23,4 +23,9 @@ public class User {
         this.contact = phone;
     }
 
+    public User(String name, String uid) {
+        this.name = name;
+        this.uid = uid;
+    }
+
 }
