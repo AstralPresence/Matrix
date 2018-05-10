@@ -80,7 +80,7 @@ public class TimerActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onClick(View view) {
                 progressText= String.valueOf(progress.getText());
-                Long tsLong = System.currentTimeMillis()/1000;
+                Long tsLong = System.currentTimeMillis();
                 String ts = tsLong.toString();
                 Toast.makeText(TimerActivity.this,"Logging to cloud",Toast.LENGTH_SHORT).show();
                 database.child("teams").child(projectTeam).child("tasks").child(taskDescription)
