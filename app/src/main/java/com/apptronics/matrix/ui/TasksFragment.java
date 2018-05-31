@@ -13,9 +13,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.apptronics.matrix.R;
-import com.apptronics.matrix.utils.Utils;
 import com.apptronics.matrix.adapter.TasksAdapter;
 import com.apptronics.matrix.model.Task;
+import com.apptronics.matrix.utils.Utils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -111,7 +111,7 @@ public class TasksFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(tasksAdapter==null){
-                    tasksAdapter=new TasksAdapter(getContext(),R.layout.tasks_list_item);
+                    tasksAdapter=new TasksAdapter(getActivity(),R.layout.tasks_list_item);
                     tasksAdapter.setDone(done);
 
                 } else {

@@ -3,7 +3,6 @@ package com.apptronics.matrix.adapter;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.apptronics.matrix.R;
-import com.apptronics.matrix.model.Task;
 import com.apptronics.matrix.model.User;
 
 import java.util.ArrayList;
@@ -28,12 +26,12 @@ import timber.log.Timber;
 public class UsersAdapter extends ArrayAdapter<User> {
 
     User p;
-    ArrayList<User> users;
+    public ArrayList<User> usersArray;
     ArrayList<String> uids;
 
     public UsersAdapter(@NonNull Context context, int resource) {
         super(context, resource);
-        users=new ArrayList<>();
+        usersArray=new ArrayList<>();
         uids=new ArrayList<>();
     }
 
@@ -52,7 +50,7 @@ public class UsersAdapter extends ArrayAdapter<User> {
             v = vi.inflate(R.layout.user_list_item, null);
         }
 
-        p = users.get(position);
+        p = usersArray.get(position);
 
         if (p != null){
             UserItemHolder userItemHolder = new UserItemHolder(v);
@@ -62,7 +60,7 @@ public class UsersAdapter extends ArrayAdapter<User> {
             userItemHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    p = users.get(position);
+                    p = usersArray.get(position);
                     p.selected=b;
                     if(b){
                         uids.add(p.uid);
@@ -81,14 +79,14 @@ public class UsersAdapter extends ArrayAdapter<User> {
 
     @Override
     public void add(@Nullable User object) {
-        users.add(object);
+        usersArray.add(object);
         super.add(object);
     }
 
     @Nullable
     @Override
     public User getItem(int position) {
-        return users.get(position);
+        return usersArray.get(position);
     }
 
     public class UserItemHolder {

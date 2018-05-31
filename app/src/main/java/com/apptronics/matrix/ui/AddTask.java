@@ -2,10 +2,10 @@ package com.apptronics.matrix.ui;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.apptronics.matrix.R;
 import com.apptronics.matrix.model.NewTask;
+import com.apptronics.matrix.service.DataService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
@@ -34,6 +35,8 @@ public class AddTask extends AppCompatActivity {
     TextInputLayout taskNameTIL,taskDeadlineTIL;
     long deadline;
     int mYear,mMonth,mDay;
+    String projectName;
+    String taskName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,21 +64,28 @@ public class AddTask extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                final String taskName = String.valueOf(taskEditText.getText());
+                taskName = String.valueOf(taskEditText.getText());
                 String taskDeadline = String.valueOf(deadlineEditText.getText());
                 if(!validate(taskName,taskDeadline)){
                     return;
                 }
                 ArrayList<String> uids = getIntent().getStringArrayListExtra("uids");
-                String projectName=getIntent().getStringExtra("team");
+                projectName=getIntent().getStringExtra("team");
                 Timber.i("users %d",uids.size());
                 databaseReference.child("teams").child(projectName).child("tasks").child(taskName).setValue(new NewTask(uids,uids,deadline))
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
+                                    Intent fcmIntent = new Intent(AddTask.this, DataService.class);
+                                    fcmIntent.putExtra("topic",projectName);
+                                    fcmIntent.putExtra("title","New task in "+projectName);
+                                    fcmIntent.putExtra("body",taskName);
+                                    startService(fcmIntent);
+
                                     Toast.makeText(AddTask.this,"Created task "+taskName, Toast.LENGTH_LONG).show();
                                     startActivity(new Intent(AddTask.this,MainActivity.class));
+
                                     finish();
                                 } else {
                                     Toast.makeText(AddTask.this,"Failed to create project",Toast.LENGTH_LONG).show();
