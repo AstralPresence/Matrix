@@ -12,4 +12,10 @@
         android:orderInCategory="99"
         android:title="Sign Out"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_addUsers"
+        android:orderInCategory="98"
+        android:title="Add Users"
+        app:showAsAction="never" />
 </menu>

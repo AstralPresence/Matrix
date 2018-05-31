@@ -1,11 +1,7 @@
 package com.apptronics.matrix.ui;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -13,55 +9,45 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.apptronics.matrix.R;
+import com.apptronics.matrix.adapter.UsersAdapter;
 import com.apptronics.matrix.model.Task;
 import com.apptronics.matrix.model.User;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.holder.StringHolder;
-import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import timber.log.Timber;
-
-import static java.lang.System.clearProperty;
-import static java.lang.System.in;
 
 /**
  * Created by Maha Perriyava on 4/30/2018.
@@ -79,7 +65,10 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
     String teamSelected,uid;
     int teams_num=0;
     FloatingActionButton addTask;
-
+    EditText taskEditText;
+    ListView usersList;
+    UsersAdapter usersAdapter;
+    Button addMembers;
     PrimaryDrawerItem projectMenuItem;
     SecondaryDrawerItem createProjectTeamItem;
 
@@ -129,7 +118,12 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
                 .build();
 
         uid=FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         mDatabase= FirebaseDatabase.getInstance().getReference();
+
+        String token = FirebaseInstanceId.getInstance().getToken();
+        mDatabase.child("users").child(uid).child("fcmId").setValue(token);
+
         ValueEventListener postListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -161,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot team :dataSnapshot.getChildren()){
                     Timber.i("team looped %s",team.getKey());
+                    FirebaseMessaging.getInstance().subscribeToTopic(team.getKey().replace(' ','_'));
 
                     for(DataSnapshot uid : team.child("UIDs").getChildren()){
                         Timber.i("uid looped %s",uid.getValue());
@@ -355,6 +350,15 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
         } else if (id == R.id.action_signout) {
             signOut();
             return true;
+        } else if (id == R.id.action_addUsers){
+            Intent editUsersIntent = new Intent(MainActivity.this,AddUsersActivity.class);
+            editUsersIntent.putExtra("team",teamSelected);
+            editUsersIntent.putExtra("action","edit");
+            startActivity(editUsersIntent);
+
+
+
+
         }
 
         return super.onOptionsItemSelected(item);

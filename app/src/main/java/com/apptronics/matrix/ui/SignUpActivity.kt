@@ -1,25 +1,19 @@
 package com.apptronics.matrix.ui
 
+
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.text.InputType
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
-
-
-import com.google.firebase.auth.FirebaseAuth
 import com.apptronics.matrix.R
 import com.apptronics.matrix.model.User
-import timber.log.Timber
-import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import android.widget.LinearLayout
-import com.google.android.gms.tasks.OnCompleteListener
 import kotlinx.android.synthetic.main.activity_sign_up.*
+import timber.log.Timber
 
 
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {

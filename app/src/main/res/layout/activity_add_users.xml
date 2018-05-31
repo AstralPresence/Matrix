@@ -25,7 +25,8 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/usersList"/>
+        android:id="@+id/usersList"
+        />
 
     <Button
         android:layout_width="wrap_content"

@@ -1,8 +1,6 @@
 package com.apptronics.matrix.adapter;
 
-import android.content.ClipData.Item;
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +10,6 @@ import android.widget.TextView;
 import com.apptronics.matrix.R;
 import com.apptronics.matrix.model.Task;
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 /**

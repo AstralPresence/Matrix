@@ -7,18 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.apptronics.matrix.R;
 import com.apptronics.matrix.model.LogDisplay;
-import com.apptronics.matrix.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import timber.log.Timber;
 
 /**
  * Created by Maha Perriyava on 5/7/2018.

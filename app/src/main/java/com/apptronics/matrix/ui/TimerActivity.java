@@ -2,12 +2,12 @@ package com.apptronics.matrix.ui;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.apptronics.matrix.R;
 import com.apptronics.matrix.model.LogDB;
+import com.apptronics.matrix.service.DataService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -28,7 +29,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Timer;
@@ -62,7 +62,7 @@ public class TimerActivity extends AppCompatActivity implements View.OnClickList
         Toolbar toolbar = findViewById(R.id.toolbarT);
         setSupportActionBar(toolbar);
 
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
 
         uid=intent.getStringExtra("uid");
         projectTeam=intent.getStringExtra("team");
@@ -82,12 +82,24 @@ public class TimerActivity extends AppCompatActivity implements View.OnClickList
                 progressText= String.valueOf(progress.getText());
                 Long tsLong = System.currentTimeMillis();
                 String ts = tsLong.toString();
+                timer.cancel();
+                myTimerTask.cancel();
                 Toast.makeText(TimerActivity.this,"Logging to cloud",Toast.LENGTH_SHORT).show();
                 database.child("teams").child(projectTeam).child("tasks").child(taskDescription)
                         .child("logs").child(uid).child(ts).setValue(new LogDB(progressText, (String) time.getText())).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()){
+
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getBaseContext());
+                            notificationManager.cancel(NOTIFICATION_ID);
+
+                            Intent fcmIntent = new Intent(TimerActivity.this, DataService.class);
+                            fcmIntent.putExtra("topic",projectTeam);
+                            fcmIntent.putExtra("title",taskDescription);
+                            fcmIntent.putExtra("body",progressText);
+                            startService(fcmIntent);
+
                             RadioButton button = findViewById(radioGroup.getCheckedRadioButtonId());
                             if(!((String)button.getText()).contains("progress")){//task is done remove id from ongoing and add to done
                                 database.child("teams").child(projectTeam).child("tasks").child(taskDescription).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -107,8 +119,6 @@ public class TimerActivity extends AppCompatActivity implements View.OnClickList
                                         doneUIDs.add(uid);
                                         dataSnapshot.getRef().child("doneUIDs").setValue(doneUIDs);
 
-                                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getBaseContext());
-                                        notificationManager.cancel(NOTIFICATION_ID);
                                     }
 
                                     @Override

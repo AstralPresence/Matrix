@@ -2,9 +2,7 @@ package com.apptronics.matrix.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -15,6 +13,8 @@ import android.widget.Toast;
 import com.apptronics.matrix.R;
 import com.apptronics.matrix.adapter.UsersAdapter;
 import com.apptronics.matrix.model.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,9 +31,10 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
     String team;
     DatabaseReference databaseReference;
     UsersAdapter usersAdapter;
-    ArrayList<String> users,uids;
+    ArrayList<String> users,uids,selectedUsers;
+    ArrayList<User> userArrayList;
     Button addMembers;
-    boolean isTask=false;
+    boolean isTask=false,isEdit=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);//back button on top
         usersList=findViewById(R.id.usersList);
         usersAdapter=new UsersAdapter(this,R.layout.user_list_item);
         usersList.setAdapter(usersAdapter);
@@ -51,11 +52,17 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
 
         databaseReference= FirebaseDatabase.getInstance().getReference();
 
+        if("edit".equals(getIntent().getStringExtra("action"))){
+            isEdit=true;
+        }
+
         Intent intent = getIntent();
         team=intent.getStringExtra("team");
-
-        if(team==null||team.isEmpty()){ //add project
-            getSupportActionBar().setTitle("Add Project Members");
+        userArrayList = new ArrayList<>();
+        if(team==null||team.isEmpty()||isEdit){ //add project
+            if(!isEdit){
+                getSupportActionBar().setTitle("Add Project Members");
+            }
             databaseReference.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -66,6 +73,7 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
                         User t_user = new User((String)user.child("name").getValue(),(String)user.child("email").getValue(),null,null);
                         t_user.uid=user.getKey();
                         usersAdapter.add(t_user);
+                        userArrayList.add(t_user);
                         Timber.i("added to adapter %s",t_user.uid);
                     }
                 }
@@ -76,7 +84,38 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
                 }
             });
 
-        } else { //add task
+            if(isEdit){ ///edit users
+
+                getSupportActionBar().setTitle("Edit Users "+team);
+                databaseReference.child("teams").child(team).child("UIDs").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        selectedUsers = new ArrayList<>();
+                        for(DataSnapshot user: dataSnapshot.getChildren()){
+                            selectedUsers.add((String)user.getValue());
+                        }
+                        //load selected entries
+                        usersAdapter.clear();
+
+                        for(User user:userArrayList){
+                            if(selectedUsers.contains(user.name)){
+                                user.selected=true;
+                            } else {
+                                user.selected=false;
+                            }
+                            usersAdapter.add(user);
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+        } else { //add task or edit team users
             isTask=true;
             getSupportActionBar().setTitle("Assign Task to Users");
             databaseReference.child("teams").child(team).child("UIDs").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -111,6 +150,7 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
 
                 }
             });
+
         }
         addMembers.setOnClickListener(this);
     }
@@ -119,20 +159,39 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View view) {
         uids=usersAdapter.getUids();
         Intent intent;
-        if(isTask){
-            intent = new Intent(AddUsersActivity.this,AddTask.class);
-            intent.putExtra("team",team);
+
+        if(isEdit){
+            databaseReference.child("teams").child(team).child("UIDs").setValue(uids).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isSuccessful()){
+                        Toast.makeText(AddUsersActivity.this,"users edited",Toast.LENGTH_LONG).show();
+                        finish();
+                    } else {
+
+                        Toast.makeText(AddUsersActivity.this,"could not edit users",Toast.LENGTH_LONG).show();
+
+                    }
+                }
+            });
         } else {
-            intent = new Intent(AddUsersActivity.this,AddProject.class);
+            if(isTask){
+                intent = new Intent(AddUsersActivity.this,AddTask.class);
+                intent.putExtra("team",team);
+            } else {
+                intent = new Intent(AddUsersActivity.this,AddProject.class);
+            }
+
+            intent.putStringArrayListExtra("uids",uids);
+            if(uids.size()==0){
+                Toast.makeText(this,"Please add Members",Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            Toast.makeText(this,uids.size()+" members added",Toast.LENGTH_LONG).show();
+            startActivity(intent);
         }
 
-        intent.putStringArrayListExtra("uids",uids);
-        if(uids.size()==0){
-            Toast.makeText(this,"Please add Members",Toast.LENGTH_LONG).show();
-            return;
-        }
 
-        Toast.makeText(this,uids.size()+" members added",Toast.LENGTH_LONG).show();
-        startActivity(intent);
     }
 }
