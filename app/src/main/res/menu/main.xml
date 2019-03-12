@@ -16,6 +16,6 @@
     <item
         android:id="@+id/action_addUsers"
         android:orderInCategory="98"
-        android:title="Add Users"
+        android:title="Edit Users"
         app:showAsAction="never" />
 </menu>

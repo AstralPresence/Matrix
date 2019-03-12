@@ -1,6 +1,7 @@
 package com.apptronics.matrix.ui;
 
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,12 +10,15 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.format.Time;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.apptronics.matrix.R;
@@ -145,6 +149,13 @@ public class TimerActivity extends AppCompatActivity implements View.OnClickList
         pause_resume.setOnClickListener(this);
 
         time=findViewById(R.id.timeText);
+        time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                showTimePickerDialog(view);
+            }
+        });
 
         intent1 = new Intent(this, TimerActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
@@ -183,6 +194,23 @@ public class TimerActivity extends AppCompatActivity implements View.OnClickList
             myTimerTask = new MyTimerTask();
             timer.schedule(myTimerTask,0,1000);
         }
+    }
+    private void showTimePickerDialog(View v) {
+        TimePickerDialog mTimePicker;
+        mTimePicker = new TimePickerDialog(TimerActivity.this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                hour=selectedHour;
+                min=selectedMinute;
+                incrementTime();
+            }
+        }, hour, min, true);
+
+
+        mTimePicker.setTitle("Select Time");
+        mTimePicker.show();
+
+
     }
 
     class MyTimerTask extends TimerTask {

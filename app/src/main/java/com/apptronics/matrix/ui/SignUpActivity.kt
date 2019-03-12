@@ -78,12 +78,12 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
                             if(task.isSuccessful){
                                 startActivity(Intent(this, MainActivity::class.java))
                             } else {
-                                Toast.makeText(this,"Failed to add user to db. "+task.result.additionalUserInfo,Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this,"Failed to add user to db. "+task.result!!.additionalUserInfo,Toast.LENGTH_SHORT).show()
                             }
                         })
 
                     } else {
-                        Toast.makeText(this,"Failed to create user. "+task.result.additionalUserInfo,Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this,"Failed to create user. "+task.result!!.additionalUserInfo,Toast.LENGTH_SHORT).show()
                     }
                 }
 

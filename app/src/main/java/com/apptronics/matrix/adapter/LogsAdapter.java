@@ -45,6 +45,7 @@ public class LogsAdapter extends ArrayAdapter<LogDisplay> {
             v = vi.inflate(R.layout.log_list_item, null);
         }
 
+
         p = logsArray.get(position);
 
         if (p != null){

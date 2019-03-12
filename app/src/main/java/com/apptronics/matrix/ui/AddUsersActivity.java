@@ -64,17 +64,20 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
                 getSupportActionBar().setTitle("Add Project Members");
             }
             databaseReference.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(usersAdapter==null){
                         usersAdapter=new UsersAdapter(AddUsersActivity.this,R.layout.user_list_item);
                     }
                     for(DataSnapshot user: dataSnapshot.getChildren()){
+
                         User t_user = new User((String)user.child("name").getValue(),(String)user.child("email").getValue(),null,null);
                         t_user.uid=user.getKey();
                         usersAdapter.add(t_user);
                         userArrayList.add(t_user);
                         Timber.i("added to adapter %s",t_user.uid);
+
                     }
                 }
 
@@ -115,9 +118,13 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
                 });
             }
 
-        } else { //add task or edit team users
+        } else {
+
+            //add task or edit team users
             isTask=true;
             getSupportActionBar().setTitle("Assign Task to Users");
+
+            //populate with project users
             databaseReference.child("teams").child(team).child("UIDs").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -161,6 +168,7 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
         Intent intent;
 
         if(isEdit){
+
             databaseReference.child("teams").child(team).child("UIDs").setValue(uids).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
@@ -174,7 +182,9 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
                     }
                 }
             });
+
         } else {
+
             if(isTask){
                 intent = new Intent(AddUsersActivity.this,AddTask.class);
                 intent.putExtra("team",team);
@@ -191,7 +201,6 @@ public class AddUsersActivity extends AppCompatActivity implements View.OnClickL
             Toast.makeText(this,uids.size()+" members added",Toast.LENGTH_LONG).show();
             startActivity(intent);
         }
-
 
     }
 }

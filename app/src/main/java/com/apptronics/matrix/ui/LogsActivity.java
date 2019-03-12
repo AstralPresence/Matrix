@@ -18,6 +18,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import timber.log.Timber;
 
@@ -91,11 +92,16 @@ public class LogsActivity extends AppCompatActivity {
                             }
                         }
                         LogDisplay logDisplay = new LogDisplay(timeStamp,timeWorked,workDescription,name);
+
                         logsArray.add(logDisplay);
                         logsAdapter.add(logDisplay);
+
+
                     }
                 }
+
                 logsList.setAdapter(logsAdapter);
+
 
             }
 
