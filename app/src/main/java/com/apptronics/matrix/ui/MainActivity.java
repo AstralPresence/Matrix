@@ -1,6 +1,7 @@
 package com.apptronics.matrix.ui;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.OnF
                 user = dataSnapshot.getValue(User.class);
 
                 headerResult.addProfiles(
-                        new ProfileDrawerItem().withName(user.name).withEmail(user.email).withIcon(getResources().getDrawable(R.drawable.ic_person_black_24dp))
+                        new ProfileDrawerItem().withName(user.name).withEmail(user.email).withIcon(Uri.parse(user.profilePicURL))
                 );
                 if(user!=null){
                     Timber.i("user found %s %s",uid,user.name);

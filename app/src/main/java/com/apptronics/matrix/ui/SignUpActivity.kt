@@ -70,17 +70,17 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
                         // update UI for current User
                         val user = mAuth!!.currentUser
                         if (profilePicURL == null || profilePicURL === "") {
-                            profilePicURL = "https://lh3.googleusercontent.com/-hyObPp970Jc/AAAAAAAAAAI/AAAAAAAAAAA/AIcfdXDTGc78NEQBCMosvaMCpwPJJM05RQ/mo/photo.jpg?sz=46"
+                            profilePicURL = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"
                         }
                         val userDB = User(name,email,profilePicURL,phone)
                         mDatabase=FirebaseDatabase.getInstance().reference
-                        mDatabase!!.child("users").child(user!!.uid).setValue(userDB).addOnCompleteListener(OnCompleteListener {
+                        mDatabase!!.child("users").child(user!!.uid).setValue(userDB).addOnCompleteListener {
                             if(task.isSuccessful){
                                 startActivity(Intent(this, MainActivity::class.java))
                             } else {
                                 Toast.makeText(this,"Failed to add user to db. "+task.result!!.additionalUserInfo,Toast.LENGTH_SHORT).show()
                             }
-                        })
+                        }
 
                     } else {
                         Toast.makeText(this,"Failed to create user. "+task.result!!.additionalUserInfo,Toast.LENGTH_SHORT).show()

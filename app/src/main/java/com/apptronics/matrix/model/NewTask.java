@@ -8,8 +8,8 @@ import java.util.ArrayList;
 
 public class NewTask {
 
-    ArrayList<String> assignedUIDs,onGoingUIDs;
-    long deadline;
+    public ArrayList<String> assignedUIDs,onGoingUIDs;
+    public long deadline;
 
     public NewTask(ArrayList<String> assignedUIDs,ArrayList<String> onGoingUIDs,long deadline){
         this.assignedUIDs=assignedUIDs;
